@@ -1,0 +1,90 @@
+#########################The RSA class##########################
+
+
+# The class below is intended as tranparent implementation of the RSA encryption algorithm to be a demonstrate how the conept of assymetric encryption can 
+# be implemented with using only a single python library for convenience. This is the mathematical manifestation of what is refered to as a trap door function
+# serving effectively as key and lock
+# the riddle can below and aswer can be found here:  https://www.mathsisfun.com/puzzles/secret-mail-solution.html
+
+# You want to send a secret message to your friend Alex in the mail.
+# But Sam, who you don't trust, has access to all your mail.
+# So you put your message in a box with a lock.
+# But you can't send a key, because Sam could use or copy it!
+# How can you get your message through securely?
+
+# If you would like to work this out by hand here is a set of simple parameters which can be used to demonstrate the idea and work through the 
+# the math found in the following video
+# https://www.youtube.com/watch?v=Z8M2BTscoD4
+
+
+# RSA System
+# m^e % n = c
+# c^d % n = m 
+# phi = (p - 1) * (q - 1)
+# e * d % phi = 1
+
+# p=61, q =53
+# e = 17
+# n= 3233
+# d = 2753
+
+
+
+
+import sympy 
+
+class RSA:
+        def __init__(self):
+                p = sympy.randprime(1,pow(2,512))
+                q = sympy.randprime(1,pow(2,512))
+                self.e = 65537 
+                self.n = p * q
+                self.phi = (p - 1) * (q - 1)
+                self.d = self.__d(self.e, self.phi)
+                
+
+        def encrypt(self, m):
+
+                if( isinstance(m, int)):
+                        c = pow(m, self.e, self.n)
+                elif( isinstance(m, str)):
+                        c = [ pow(ord(l), self.e, self.n) for l in  m ]
+                return c
+
+        def decrypt(self, c,):
+
+                m = ''.join(map(lambda x: chr(pow(x, self.d, self.n)), c))
+                return m 
+
+        def __d(self, e, phi):
+
+                dvd = [  e, phi ]
+                unit = [1, phi]
+                i = 0
+                whole = 0
+
+                while dvd[-1] != 1:
+                        whole = dvd[-1] // dvd[-2]
+                        delta_tmp = dvd[-1] - dvd[-2] * whole
+                        unit_tmp = unit[-1] - unit[-2] * whole  
+                        if(unit_tmp < 0):
+                                unit_tmp = unit_tmp % phi
+                        dvd.insert(0,delta_tmp)
+                        dvd.pop()
+                        unit.insert(0,unit_tmp)
+                        unit.pop()
+
+                return unit[-1]
+
+#########################The RSA class##########################
+
+
+#######################Demo###################################
+##############################################################
+mycypher = RSA()
+encrypted_message = mycypher.encrypt('The answer 42')
+print('Encrypted Message', encrypted_message)
+decrypted_message = mycypher.decrypt(encrypted_message)
+print('\n\n\n Decrypted Message {}'.format(decrypted_message))
+###############################################################
+
